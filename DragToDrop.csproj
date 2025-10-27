@@ -1,0 +1,28 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>netstandard2.1</TargetFramework>
+        <Nullable>enable</Nullable>
+        <DuckovPath>E:\programs\steam\steamapps\common\Escape from Duckov</DuckovPath>
+        <LangVersion>default</LangVersion>
+    </PropertyGroup>
+    <ItemGroup>
+        <Reference Include="$(DuckovPath)\Duckov_Data\Managed\TeamSoda.*" />
+        <Reference Include="$(DuckovPath)\Duckov_Data\Managed\ItemStatsSystem.dll" />
+        <Reference Include="$(DuckovPath)\Duckov_Data\Managed\Unity*" />
+        <Reference Include="$(DuckovPath)\Duckov_Data\Managed\LeTai*" />
+        <Reference Include="0Harmony">
+          <HintPath>0Harmony.dll</HintPath>
+        </Reference>
+  </ItemGroup> 
+  <Target Name="CopyModFiles" AfterTargets="Build">
+    <ItemGroup>
+      <ModFiles Include="$(TargetDir)DragToDrop.dll" />
+      <ModFiles Include="$(TargetDir)DragToDrop.pdb" />
+    </ItemGroup>
+    <Copy SourceFiles="@(ModFiles)"
+          DestinationFolder="$(DuckovPath)\Duckov_Data\Mods\DragToDrop"
+          SkipUnchangedFiles="false" />
+    <Message Text="Mod files copied to game Mods folder." Importance="high" />
+  </Target>
+</Project>
