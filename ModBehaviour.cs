@@ -1,7 +1,13 @@
-﻿using Duckov.UI;
+﻿using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
+using System.Reflection.Emit;
+using Duckov.UI;
 using HarmonyLib;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using UnityEngine.UI;
+using Debug = UnityEngine.Debug;
 
 namespace DragToDrop
 {
@@ -127,6 +133,80 @@ namespace DragToDrop
                 }
 
                 Log($"UI Add to {__instance.transform.name}");
+            }
+        }
+
+        [HarmonyPatch(typeof(ItemDisplay), nameof(ItemDisplay.OnPointerClick))]
+        public static class Patch_ItemDisplay_OnPointerClick
+        {
+            static bool patchedJudge(float delta)
+            {
+                // delta is eventData.clickTime - this.lastClickTime
+                return delta <= 0.3f || Keyboard.current.shiftKey.isPressed;
+            }
+
+            static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+            {
+                var codes = new List<CodeInstruction>(instructions);
+                bool failed = false;
+                string reason = "";
+                if (codes.Count != 78)
+                {
+                    failed = true;
+                    reason = $"codes.Count: {codes.Count} != 78";
+                }
+                else if (codes[16].opcode != OpCodes.Callvirt)
+                {
+                    failed = true;
+                    reason = $"codes[16] opcode: {codes[16].opcode} != OpCodes.Callvirt";
+                }
+                else if (codes[16].operand is not MethodInfo info)
+                {
+                    failed = true;
+                    reason = $"operand type: {codes[16].operand?.GetType().FullName ?? "null"} is not MethodInfo";
+                }
+                else if (info.Name != "get_clickTime")
+                {
+                    failed = true;
+                    reason = $"method name: {info.Name} != get_clickTime";
+                }
+
+                if (failed)
+                {
+                    Log($"Failed to patch ItemDisplay.OnPointerClick. {reason}");
+                    return codes.AsEnumerable();
+                }
+
+                // Log($"len of ItemDisplay.OnPointerClick: {codes.Count}");
+
+                /*
+                codes[19]:
+                    IL_0032: sub
+                    IL_0033: ldc.r4       0.3
+                    IL_0038: bgt.un.s     IL_005c
+                stack after sub:
+                    eventData.clickTime - this.lastClickTime
+                 */
+                var callMethod = AccessTools.Method(typeof(Patch_ItemDisplay_OnPointerClick), nameof(patchedJudge));
+                codes[20] = new CodeInstruction(OpCodes.Call, callMethod);
+                codes[21].opcode = OpCodes.Brfalse_S;
+
+                Log("Successfully patched ItemDisplay.OnPointerClick. Now we have shift+left click!");
+
+                // for (int i = 0; i < codes.Count; i++)
+                // {
+                //     var c = codes[i];
+                //     string operandStr = c.operand switch
+                //     {
+                //         null => "",
+                //         MethodBase m => m.DeclaringType + "::" + m.Name,
+                //         FieldInfo f => f.DeclaringType + "::" + f.Name,
+                //         _ => c.operand.ToString()
+                //     };
+                //     Log($"{i:D3}: {c.opcode} {operandStr}");
+                // }
+
+                return codes.AsEnumerable();
             }
         }
     }
