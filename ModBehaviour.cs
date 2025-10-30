@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
@@ -13,24 +14,44 @@ namespace DragToDrop;
 
 public class ModBehaviour : Duckov.Modding.ModBehaviour
 {
+    public const string ModName = "DragToDrop";
+    public static Config Config = new Config();
+
     private static GameObject _discardArea;
     private static Image _discardAreaImage;
     private static GameObject _discardAreaTextObject;
     private static Text _discardAreaText;
+    private static Canvas _canvas;
 
     public static void Log(object message)
     {
         Debug.Log($"[DragToDrop] {message}");
     }
 
-    private static void CreateDiscardArea(GameObject lootView, float scale)
+    public static void SetDiscardAreaStyle()
     {
+        if (_canvas == null || _discardAreaTextObject == null || _discardAreaText == null)
+        {
+            return;
+        }
+
+        float scale = _canvas.scaleFactor;
+        var sizeDelta = new Vector2(Config.sizeDeltaX, Config.sizeDeltaY) * scale;
+        _discardArea.GetComponent<RectTransform>().sizeDelta = sizeDelta
+            ;
+        _discardAreaTextObject.GetComponent<RectTransform>().sizeDelta = sizeDelta;
+        _discardAreaText.fontSize = Config.fontSize;
+        Log($"SetDiscardAreaStyle: sizeDelta {sizeDelta}, fontSize {_discardAreaText.fontSize}");
+    }
+
+    private static void CreateDiscardArea(GameObject lootView)
+    {
+        float scale = _canvas.scaleFactor;
         if (_discardArea != null)
         {
             _discardArea.transform.SetParent(lootView.transform);
             _discardArea.transform.SetSiblingIndex(0);
-            _discardAreaTextObject.GetComponent<RectTransform>().sizeDelta = new Vector2(927, 896) * scale;
-            _discardAreaText.fontSize = (158 * scale / 5 < 24) ? (int)(158 * scale / 5) : 24;
+            SetDiscardAreaStyle();
             return;
         }
 
@@ -40,13 +61,10 @@ public class ModBehaviour : Duckov.Modding.ModBehaviour
         discardArea.AddComponent<DropArea>();
 
         RectTransform rectTransform = discardArea.AddComponent<RectTransform>();
-        rectTransform.sizeDelta = new Vector2(927, 896) * scale;
         rectTransform.anchorMin = new Vector2(0.5f, 0.5f);
         rectTransform.anchorMax = new Vector2(0.5f, 0.5f);
         rectTransform.pivot = new Vector2(0.5f, 0.5f);
-        rectTransform.anchoredPosition = new Vector2(-17, 98);
-        Log(
-            $"Scale = {scale} SizeDelta: {rectTransform.sizeDelta} anchoredPosition: {rectTransform.anchoredPosition}");
+        rectTransform.anchoredPosition = new Vector2(0, 98);
 
         Image image = discardArea.AddComponent<Image>();
         image.color = new Color(21 / 255f, 41 / 255f, 66 / 255f, 0.0f);
@@ -56,7 +74,6 @@ public class ModBehaviour : Duckov.Modding.ModBehaviour
         Text text = textObject.AddComponent<Text>();
         text.text = "丢弃物品";
         text.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
-        text.fontSize = 24;
         text.color = new Color(1, 1, 1, 0.0f);
         text.alignment = TextAnchor.MiddleCenter;
 
@@ -70,13 +87,16 @@ public class ModBehaviour : Duckov.Modding.ModBehaviour
         _discardAreaTextObject = textObject;
         _discardAreaImage = image;
         _discardAreaText = text;
+
+        SetDiscardAreaStyle();
     }
 
     void Awake()
     {
         var harmony = new Harmony("com.froster.mod");
         harmony.PatchAll();
-        Log($"Resolution: {Screen.width}x{Screen.height}");
+        Config = Config.LoadConfig();
+        Config.SetupModConfig();
         Log("Loaded!!!");
     }
 
@@ -109,24 +129,22 @@ public class ModBehaviour : Duckov.Modding.ModBehaviour
                 return;
             }
 
-            // Log(
-            //     $"uiScaleMode: {scaler.uiScaleMode} referencePixelsPerUnit: {scaler.referencePixelsPerUnit} scaleFactor: {scaler.scaleFactor} referenceResolution: {scaler.referenceResolution} screenMatchMode: {scaler.screenMatchMode}");
+            _canvas = canvas;
 
-
-            CreateDiscardArea(__instance.gameObject, canvas.scaleFactor);
+            CreateDiscardArea(__instance.gameObject);
 
             if (!_registered)
             {
                 _registered = true;
                 IItemDragSource.OnStartDragItem += item =>
                 {
-                    Log($"OnStartDragItem, item is {item}");
-                    _discardAreaImage.color = new Color(21 / 255f, 41 / 255f, 66 / 255f, 0.3f);
-                    _discardAreaText.color = new Color(1, 1, 1, 0.5f);
+                    // Log($"OnStartDragItem, item is {item}");
+                    _discardAreaImage.color = new Color(21 / 255f, 41 / 255f, 66 / 255f, Config.alphaOnActive);
+                    _discardAreaText.color = new Color(1, 1, 1, ModBehaviour.Config.alphaOnActive * 1.6f);
                 };
                 IItemDragSource.OnEndDragItem += item =>
                 {
-                    Log($"OnEndDragItem, item is {item}");
+                    // Log($"OnEndDragItem, item is {item}");
                     _discardAreaImage.color = new Color(21 / 255f, 41 / 255f, 66 / 255f, 0.0f);
                     _discardAreaText.color = new Color(1, 1, 1, 0.0f);
                 };
@@ -142,7 +160,8 @@ public class ModBehaviour : Duckov.Modding.ModBehaviour
         static bool patchedJudge(float delta)
         {
             // delta is eventData.clickTime - this.lastClickTime
-            return delta <= 0.3f || Keyboard.current.shiftKey.isPressed;
+            // Log($"Judge: {delta} {Config.enableShiftLeftClick} {Keyboard.current.shiftKey.isPressed}");
+            return delta <= 0.3f || (Config.enableShiftLeftClick && Keyboard.current.shiftKey.isPressed);
         }
 
         static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)

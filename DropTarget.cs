@@ -2,15 +2,12 @@
 using ItemStatsSystem;
 using UnityEngine;
 using UnityEngine.EventSystems;
+// using static DragToDrop.ModBehaviour;
 
 namespace DragToDrop;
 
 public class DropArea : MonoBehaviour, IDropHandler, IPointerEnterHandler, IPointerExitHandler
 {
-    // public static void Log(object message)
-    // {
-    //     ModBehaviour.Log(message);
-    // }
 
     public void OnPointerEnter(PointerEventData eventData)
     {
