@@ -78,5 +78,9 @@ public class DropArea : MonoBehaviour, IDropHandler, IPointerEnterHandler, IPoin
                 }
             }
         }
+        else
+        {
+            item.Drop(CharacterMainControl.Main, true);
+        }
     }
 }
