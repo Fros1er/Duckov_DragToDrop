@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
+using Duckov.Economy;
 using Duckov.UI;
 using HarmonyLib;
 using UnityEngine;
@@ -41,6 +41,27 @@ public class ModBehaviour : Duckov.Modding.ModBehaviour
             ;
         _discardAreaTextObject.GetComponent<RectTransform>().sizeDelta = sizeDelta;
         _discardAreaText.fontSize = Config.fontSize;
+        string text = "丢弃物品";
+        switch (Config.dropAtBaseAction)
+        {
+            case Config.DropAtBaseAction.DropUnconfigured:
+            {
+                text = "丢弃物品\n设置中可以调整在仓库中丢弃物品时的行为";
+                break;
+            }
+            case Config.DropAtBaseAction.SendToStorage:
+            {
+                text = "放回仓库";
+                break;
+            }
+            case Config.DropAtBaseAction.Sell:
+            {
+                text = "出售";
+                break;
+            }
+        }
+
+        _discardAreaText.text = text;
         Log($"SetDiscardAreaStyle: sizeDelta {sizeDelta}, fontSize {_discardAreaText.fontSize}");
     }
 
@@ -72,7 +93,6 @@ public class ModBehaviour : Duckov.Modding.ModBehaviour
         GameObject textObject = new GameObject("Text");
         textObject.transform.SetParent(discardArea.transform);
         Text text = textObject.AddComponent<Text>();
-        text.text = "丢弃物品";
         text.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
         text.color = new Color(1, 1, 1, 0.0f);
         text.alignment = TextAnchor.MiddleCenter;
@@ -226,6 +246,25 @@ public class ModBehaviour : Duckov.Modding.ModBehaviour
             // }
 
             return codes.AsEnumerable();
+        }
+    }
+
+    public static SortedSet<StockShop> shops = new(Comparer<StockShop>.Create((a, b) => b.sellFactor.CompareTo(a.sellFactor)));
+
+    [HarmonyPatch(typeof(StockShop), "Awake")]
+    public static class Patch_StockShop_OnEnable
+    {
+        static void Postfix(StockShop __instance)
+        {
+            shops.Add(__instance);
+        }
+    }
+    [HarmonyPatch(typeof(StockShop), "OnDestroy")]
+    public static class Patch_StockShop_OnDisable
+    {
+        static void Prefix(StockShop __instance)
+        {
+            shops.Remove(__instance);
         }
     }
 }

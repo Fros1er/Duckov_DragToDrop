@@ -11,6 +11,7 @@
         <Reference Include="$(DuckovPath)\Duckov_Data\Managed\ItemStatsSystem.dll" />
         <Reference Include="$(DuckovPath)\Duckov_Data\Managed\Unity*" />
         <Reference Include="$(DuckovPath)\Duckov_Data\Managed\LeTai*" />
+        <Reference Include="$(DuckovPath)\Duckov_Data\Managed\UniTask*" />
         <Reference Include="0Harmony">
           <HintPath>0Harmony.dll</HintPath>
         </Reference>

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 using static DragToDrop.ModBehaviour;
@@ -8,11 +9,20 @@ namespace DragToDrop;
 [Serializable]
 public class Config
 {
+    public enum DropAtBaseAction
+    {
+        DropUnconfigured = 0,
+        Drop = 1,
+        SendToStorage = 2,
+        Sell = 3
+    }
+
     public int sizeDeltaX = 927;
     public int sizeDeltaY = 896;
     public int fontSize = 24;
     public bool enableShiftLeftClick = true;
     public float alphaOnActive = 0.5f;
+    public DropAtBaseAction dropAtBaseAction = DropAtBaseAction.DropUnconfigured;
 
     private static bool _hasSetup;
 
@@ -94,6 +104,13 @@ public class Config
                     ModConfigAPI.SafeLoad(ModName, "alphaOnActive", ModBehaviour.Config.alphaOnActive);
                 break;
             }
+            case nameof(dropAtBaseAction):
+            {
+                ModBehaviour.Config.dropAtBaseAction =
+                    (DropAtBaseAction)ModConfigAPI.SafeLoad(ModName, nameof(dropAtBaseAction),
+                        (int)ModBehaviour.Config.dropAtBaseAction);
+                break;
+            }
         }
     }
 
@@ -160,6 +177,22 @@ public class Config
             "enableShiftLeftClick",
             "启用Shift+左键=双击",
             ModBehaviour.Config.enableShiftLeftClick
+        );
+        var formatOptions = new SortedDictionary<string, object>
+        {
+            { "丢弃到脚下", (int)DropAtBaseAction.DropUnconfigured },
+            { "丢弃到脚下（关闭区域中的设置提示）", (int)DropAtBaseAction.Drop },
+            { "放入仓库", (int)DropAtBaseAction.SendToStorage },
+            { "以所有商人里价格最好的出售（广告：为避免误操作，建议订阅物品回购mod）", (int)DropAtBaseAction.Sell }
+        };
+
+        ModConfigAPI.SafeAddDropdownList(
+            ModName,
+            nameof(dropAtBaseAction),
+            "在基地丢弃物品时的行为",
+            formatOptions,
+            typeof(int),
+            (int)ModBehaviour.Config.dropAtBaseAction
         );
         _hasSetup = true;
     }

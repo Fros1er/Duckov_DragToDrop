@@ -1,14 +1,14 @@
-﻿using Duckov.UI;
+﻿using Cysharp.Threading.Tasks;
+using Duckov.UI;
 using ItemStatsSystem;
 using UnityEngine;
 using UnityEngine.EventSystems;
-// using static DragToDrop.ModBehaviour;
+using static DragToDrop.ModBehaviour;
 
 namespace DragToDrop;
 
 public class DropArea : MonoBehaviour, IDropHandler, IPointerEnterHandler, IPointerExitHandler
 {
-
     public void OnPointerEnter(PointerEventData eventData)
     {
     }
@@ -21,38 +21,62 @@ public class DropArea : MonoBehaviour, IDropHandler, IPointerEnterHandler, IPoin
     {
         if (eventData.used || eventData.button != PointerEventData.InputButton.Left)
         {
-            // Log($"eventData.used {eventData.used} || eventData.button {eventData.button}");
             return;
         }
 
         IItemDragSource component = eventData.pointerDrag.gameObject.GetComponent<IItemDragSource>();
         if (component == null || !component.IsEditable())
         {
-            // Log($"{component} || component.IsEditable() {component?.IsEditable()}");
             return;
         }
 
         Item item = component.GetItem();
         if (item == null || !item.CanDrop)
         {
-            // Log($"{item} || CanDrop: {item?.CanDrop}");
             return;
         }
 
         ItemUIUtilities.NotifyPutItem(item);
-
         if (component is InventoryEntry ie && !ie.CanOperate)
         {
-            // Log($"component is InventoryEntry, CanOperate={ie.CanOperate}");
             return;
         }
 
         if (component is SlotDisplay sd && !sd.IsEditable())
         {
-            // Log($"component is SlotDisplay, Editable={sd.Editable}");
             return;
         }
 
-        item.Drop(CharacterMainControl.Main, true);
+        LevelManager levelManager = LevelManager.Instance;
+        if (levelManager.IsBaseLevel)
+        {
+            switch (ModBehaviour.Config.dropAtBaseAction)
+            {
+                case Config.DropAtBaseAction.SendToStorage:
+                {
+                    if (PlayerStorage.IsAccessableAndNotFull())
+                    {
+                        ItemUtilities.SendToPlayerStorage(item);
+                    }
+                    break;
+                }
+                case Config.DropAtBaseAction.Sell:
+                {
+                    if (shops.Count > 0 && shops.Min != null)
+                    {
+                        Log($"Sell to {shops.Min.MerchantID}");
+                        ((UniTask)Util.CallMethod(shops.Min, "Sell", new object[] { item })).Forget();
+                    }
+                    break;
+                }
+                case Config.DropAtBaseAction.Drop:
+                case Config.DropAtBaseAction.DropUnconfigured:
+                default:
+                {
+                    item.Drop(CharacterMainControl.Main, true);
+                    break;
+                }
+            }
+        }
     }
 }
