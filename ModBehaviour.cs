@@ -37,27 +37,31 @@ public class ModBehaviour : Duckov.Modding.ModBehaviour
 
         float scale = _canvas.scaleFactor;
         var sizeDelta = new Vector2(Config.sizeDeltaX, Config.sizeDeltaY) * scale;
-        _discardArea.GetComponent<RectTransform>().sizeDelta = sizeDelta
-            ;
-        _discardAreaTextObject.GetComponent<RectTransform>().sizeDelta = sizeDelta;
+        var anchoredPosition = new Vector2(Config.anchoredPosX, Config.anchoredPosY);
+        _discardArea.GetComponent<RectTransform>().sizeDelta = sizeDelta;
+        _discardArea.GetComponent<RectTransform>().anchoredPosition = anchoredPosition;
         _discardAreaText.fontSize = Config.fontSize;
+
         string text = "丢弃物品";
-        switch (Config.dropAtBaseAction)
+        if (LevelManager.Instance.IsBaseLevel)
         {
-            case Config.DropAtBaseAction.DropUnconfigured:
+            switch (Config.dropAtBaseAction)
             {
-                text = "丢弃物品\n设置中可以调整在仓库中丢弃物品时的行为";
-                break;
-            }
-            case Config.DropAtBaseAction.SendToStorage:
-            {
-                text = "放回仓库";
-                break;
-            }
-            case Config.DropAtBaseAction.Sell:
-            {
-                text = "出售";
-                break;
+                case Config.DropAtBaseAction.DropUnconfigured:
+                {
+                    text = "丢弃物品\n设置中可以调整在仓库中丢弃物品时的行为";
+                    break;
+                }
+                case Config.DropAtBaseAction.SendToStorage:
+                {
+                    text = "放回仓库";
+                    break;
+                }
+                case Config.DropAtBaseAction.Sell:
+                {
+                    text = "出售";
+                    break;
+                }
             }
         }
 
@@ -67,7 +71,6 @@ public class ModBehaviour : Duckov.Modding.ModBehaviour
 
     private static void CreateDiscardArea(GameObject lootView)
     {
-        float scale = _canvas.scaleFactor;
         if (_discardArea != null)
         {
             _discardArea.transform.SetParent(lootView.transform);
@@ -85,12 +88,11 @@ public class ModBehaviour : Duckov.Modding.ModBehaviour
         rectTransform.anchorMin = new Vector2(0.5f, 0.5f);
         rectTransform.anchorMax = new Vector2(0.5f, 0.5f);
         rectTransform.pivot = new Vector2(0.5f, 0.5f);
-        rectTransform.anchoredPosition = new Vector2(0, 98);
 
         Image image = discardArea.AddComponent<Image>();
         image.color = new Color(21 / 255f, 41 / 255f, 66 / 255f, 0.0f);
 
-        GameObject textObject = new GameObject("Text");
+        GameObject textObject = new GameObject("DiscardAreaText");
         textObject.transform.SetParent(discardArea.transform);
         Text text = textObject.AddComponent<Text>();
         text.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
@@ -119,6 +121,11 @@ public class ModBehaviour : Duckov.Modding.ModBehaviour
         Config.SetupModConfig();
         Log("Loaded!!!");
     }
+
+    // private void Update()
+    // {
+    //     Test.Update();
+    // }
 
     private static bool _registered;
 
@@ -180,8 +187,10 @@ public class ModBehaviour : Duckov.Modding.ModBehaviour
         static bool patchedJudge(float delta)
         {
             // delta is eventData.clickTime - this.lastClickTime
-            // Log($"Judge: {delta} {Config.enableShiftLeftClick} {Keyboard.current.shiftKey.isPressed}");
-            return delta <= 0.3f || (Config.enableShiftLeftClick && Keyboard.current.shiftKey.isPressed);
+            // Log($"Judge: {delta} {Config.enableShiftLeftClick} {Keyboard.current.shiftKey.wasPressedThisFrame} {Keyboard.current.shiftKey.isPressed}");
+            return delta <= 0.3f || (Config.enableShiftLeftClick &&
+                                     (Keyboard.current.shiftKey.isPressed ||
+                                      Keyboard.current.shiftKey.wasPressedThisFrame));
         }
 
         static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
@@ -249,18 +258,20 @@ public class ModBehaviour : Duckov.Modding.ModBehaviour
         }
     }
 
-    public static SortedSet<StockShop> shops = new(Comparer<StockShop>.Create((a, b) => b.sellFactor.CompareTo(a.sellFactor)));
+    public static SortedSet<StockShop> shops =
+        new(Comparer<StockShop>.Create((a, b) => b.sellFactor.CompareTo(a.sellFactor)));
 
     [HarmonyPatch(typeof(StockShop), "Awake")]
-    public static class Patch_StockShop_OnEnable
+    public static class Patch_StockShop_Awake
     {
         static void Postfix(StockShop __instance)
         {
             shops.Add(__instance);
         }
     }
+
     [HarmonyPatch(typeof(StockShop), "OnDestroy")]
-    public static class Patch_StockShop_OnDisable
+    public static class Patch_StockShop_OnDestory
     {
         static void Prefix(StockShop __instance)
         {

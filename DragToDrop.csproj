@@ -12,6 +12,7 @@
         <Reference Include="$(DuckovPath)\Duckov_Data\Managed\Unity*" />
         <Reference Include="$(DuckovPath)\Duckov_Data\Managed\LeTai*" />
         <Reference Include="$(DuckovPath)\Duckov_Data\Managed\UniTask*" />
+        <Reference Include="$(DuckovPath)\Duckov_Data\Managed\Eflatun.SceneReference.dll" />
         <Reference Include="0Harmony">
           <HintPath>0Harmony.dll</HintPath>
         </Reference>

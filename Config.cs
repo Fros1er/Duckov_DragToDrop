@@ -19,9 +19,11 @@ public class Config
 
     public int sizeDeltaX = 927;
     public int sizeDeltaY = 896;
+    public int anchoredPosX = 0;
+    public int anchoredPosY = 60;
     public int fontSize = 24;
     public bool enableShiftLeftClick = true;
-    public float alphaOnActive = 0.5f;
+    public float alphaOnActive = 0.3f;
     public DropAtBaseAction dropAtBaseAction = DropAtBaseAction.DropUnconfigured;
 
     private static bool _hasSetup;
@@ -38,22 +40,13 @@ public class Config
                 var config = JsonUtility.FromJson<Config>(json);
                 return config;
             }
-
-            Log("Config file not found, try load from ModConfig");
         }
         catch (Exception e)
         {
             Debug.LogError($"Failed to load config from file: {e}, try load from ModConfig");
         }
 
-        return new Config
-        {
-            sizeDeltaX = ModConfigAPI.SafeLoad(ModName, "sizeDeltaX", ModBehaviour.Config.sizeDeltaX),
-            sizeDeltaY = ModConfigAPI.SafeLoad(ModName, "sizeDeltaY", ModBehaviour.Config.sizeDeltaY),
-            fontSize = ModConfigAPI.SafeLoad(ModName, "fontSize", ModBehaviour.Config.fontSize),
-            enableShiftLeftClick = ModConfigAPI.SafeLoad(ModName, "enableShiftLeftClick",
-                ModBehaviour.Config.enableShiftLeftClick)
-        };
+        return new Config();
     }
 
     private static void SaveConfig(Config config)
@@ -85,6 +78,18 @@ public class Config
             {
                 ModBehaviour.Config.sizeDeltaY =
                     ModConfigAPI.SafeLoad(ModName, "sizeDeltaY", ModBehaviour.Config.sizeDeltaY);
+                break;
+            }
+            case nameof(anchoredPosX):
+            {
+                ModBehaviour.Config.anchoredPosX =
+                    ModConfigAPI.SafeLoad(ModName, nameof(anchoredPosX), ModBehaviour.Config.anchoredPosX);
+                break;
+            }
+            case nameof(anchoredPosY):
+            {
+                ModBehaviour.Config.anchoredPosY =
+                    ModConfigAPI.SafeLoad(ModName, nameof(anchoredPosY), ModBehaviour.Config.anchoredPosY);
                 break;
             }
             case "fontSize":
@@ -145,7 +150,7 @@ public class Config
             "sizeDeltaX",
             "丢弃区域宽度（初始为927）",
             typeof(int),
-            ModBehaviour.Config.fontSize,
+            ModBehaviour.Config.sizeDeltaX,
             new Vector2(0, 2560)
         );
         ModConfigAPI.SafeAddInputWithSlider(
@@ -153,8 +158,24 @@ public class Config
             "sizeDeltaY",
             "丢弃区域高度（初始为896）",
             typeof(int),
-            ModBehaviour.Config.fontSize,
+            ModBehaviour.Config.sizeDeltaY,
             new Vector2(0, 1440)
+        );
+        ModConfigAPI.SafeAddInputWithSlider(
+            ModName,
+            nameof(anchoredPosX),
+            "丢弃区域横向偏移（初始为0）",
+            typeof(int),
+            ModBehaviour.Config.anchoredPosX,
+            new Vector2(-2560, 2560)
+        );
+        ModConfigAPI.SafeAddInputWithSlider(
+            ModName,
+            nameof(anchoredPosY),
+            "丢弃区域纵向偏移（初始为60）",
+            typeof(int),
+            ModBehaviour.Config.anchoredPosY,
+            new Vector2(-1440, 1440)
         );
         ModConfigAPI.SafeAddInputWithSlider(
             ModName,
