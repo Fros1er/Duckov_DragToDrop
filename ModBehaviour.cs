@@ -41,6 +41,10 @@ public class ModBehaviour : Duckov.Modding.ModBehaviour
         _discardArea.GetComponent<RectTransform>().sizeDelta = sizeDelta;
         _discardArea.GetComponent<RectTransform>().anchoredPosition = anchoredPosition;
         _discardAreaText.fontSize = Config.fontSize;
+        _discardAreaText.horizontalOverflow = HorizontalWrapMode.Wrap;
+        _discardAreaText.verticalOverflow = VerticalWrapMode.Overflow;
+        _discardAreaTextObject.GetComponent<RectTransform>().sizeDelta =
+            new Vector2(Config.fontSize * 28f, Config.fontSize * 3f);
 
         string text = L.Get(L.Keys.DiscardDrop);
         if (LevelManager.Instance.IsBaseLevel)
