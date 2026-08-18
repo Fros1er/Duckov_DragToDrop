@@ -1,0 +1,18 @@
+key,value
+DragToDrop.Discard.Drop,Drop Item
+DragToDrop.Discard.DropUnconfigured,"Drop Item
+Adjust base drop behavior in settings"
+DragToDrop.Discard.SendToStorage,Return to Storage
+DragToDrop.Discard.Sell,Sell
+DragToDrop.Config.SizeDeltaX,Discard area width (default: 927)
+DragToDrop.Config.SizeDeltaY,Discard area height (default: 896)
+DragToDrop.Config.AnchoredPosX,Discard area horizontal offset (default: 0)
+DragToDrop.Config.AnchoredPosY,Discard area vertical offset (default: 60)
+DragToDrop.Config.FontSize,Font size (default: 24)
+DragToDrop.Config.AlphaOnActive,Discard area opacity (default: 0.3)
+DragToDrop.Config.EnableShiftLeftClick,Enable Shift+Left Click = Double Click
+DragToDrop.Config.DropAtBaseAction,Behavior when discarding items at base
+DragToDrop.Config.DropAtBase.DropUnconfigured,Drop at feet
+DragToDrop.Config.DropAtBase.Drop,Drop at feet (hide settings hint in area)
+DragToDrop.Config.DropAtBase.SendToStorage,Send to storage
+DragToDrop.Config.DropAtBase.Sell,"Sell at best merchant price (tip: subscribe to buyback mod to avoid mistakes)"

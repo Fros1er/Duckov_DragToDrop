@@ -42,24 +42,24 @@ public class ModBehaviour : Duckov.Modding.ModBehaviour
         _discardArea.GetComponent<RectTransform>().anchoredPosition = anchoredPosition;
         _discardAreaText.fontSize = Config.fontSize;
 
-        string text = "丢弃物品";
+        string text = L.Get(L.Keys.DiscardDrop);
         if (LevelManager.Instance.IsBaseLevel)
         {
             switch (Config.dropAtBaseAction)
             {
                 case Config.DropAtBaseAction.DropUnconfigured:
                 {
-                    text = "丢弃物品\n设置中可以调整在仓库中丢弃物品时的行为";
+                    text = L.Get(L.Keys.DiscardDropUnconfigured);
                     break;
                 }
                 case Config.DropAtBaseAction.SendToStorage:
                 {
-                    text = "放回仓库";
+                    text = L.Get(L.Keys.DiscardSendToStorage);
                     break;
                 }
                 case Config.DropAtBaseAction.Sell:
                 {
-                    text = "出售";
+                    text = L.Get(L.Keys.DiscardSell);
                     break;
                 }
             }
@@ -118,8 +118,9 @@ public class ModBehaviour : Duckov.Modding.ModBehaviour
         var harmony = new Harmony("com.froster.mod");
         harmony.PatchAll();
         Config = Config.LoadConfig();
+        L.Initialize(SetDiscardAreaStyle);
         Config.SetupModConfig();
-        Log("Loaded!!!");
+        Log($"Loaded!!! Language: {L.CurrentLanguage}");
     }
 
     // private void Update()

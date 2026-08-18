@@ -148,7 +148,7 @@ public class Config
         ModConfigAPI.SafeAddInputWithSlider(
             ModName,
             "sizeDeltaX",
-            "丢弃区域宽度（初始为927）",
+            L.Get(L.Keys.ConfigSizeDeltaX),
             typeof(int),
             ModBehaviour.Config.sizeDeltaX,
             new Vector2(0, 2560)
@@ -156,7 +156,7 @@ public class Config
         ModConfigAPI.SafeAddInputWithSlider(
             ModName,
             "sizeDeltaY",
-            "丢弃区域高度（初始为896）",
+            L.Get(L.Keys.ConfigSizeDeltaY),
             typeof(int),
             ModBehaviour.Config.sizeDeltaY,
             new Vector2(0, 1440)
@@ -164,7 +164,7 @@ public class Config
         ModConfigAPI.SafeAddInputWithSlider(
             ModName,
             nameof(anchoredPosX),
-            "丢弃区域横向偏移（初始为0）",
+            L.Get(L.Keys.ConfigAnchoredPosX),
             typeof(int),
             ModBehaviour.Config.anchoredPosX,
             new Vector2(-2560, 2560)
@@ -172,7 +172,7 @@ public class Config
         ModConfigAPI.SafeAddInputWithSlider(
             ModName,
             nameof(anchoredPosY),
-            "丢弃区域纵向偏移（初始为60）",
+            L.Get(L.Keys.ConfigAnchoredPosY),
             typeof(int),
             ModBehaviour.Config.anchoredPosY,
             new Vector2(-1440, 1440)
@@ -180,7 +180,7 @@ public class Config
         ModConfigAPI.SafeAddInputWithSlider(
             ModName,
             "fontSize",
-            "字体大小（初始为24）",
+            L.Get(L.Keys.ConfigFontSize),
             typeof(int),
             ModBehaviour.Config.fontSize,
             new Vector2(0, 128)
@@ -188,7 +188,7 @@ public class Config
         ModConfigAPI.SafeAddInputWithSlider(
             ModName,
             "alphaOnActive",
-            "丢弃区域透明度（初始为0.3）",
+            L.Get(L.Keys.ConfigAlphaOnActive),
             typeof(float),
             ModBehaviour.Config.alphaOnActive,
             new Vector2(0, 1f)
@@ -196,21 +196,21 @@ public class Config
         ModConfigAPI.SafeAddBoolDropdownList(
             ModName,
             "enableShiftLeftClick",
-            "启用Shift+左键=双击",
+            L.Get(L.Keys.ConfigEnableShiftLeftClick),
             ModBehaviour.Config.enableShiftLeftClick
         );
         var formatOptions = new SortedDictionary<string, object>
         {
-            { "丢弃到脚下", (int)DropAtBaseAction.DropUnconfigured },
-            { "丢弃到脚下（关闭区域中的设置提示）", (int)DropAtBaseAction.Drop },
-            { "放入仓库", (int)DropAtBaseAction.SendToStorage },
-            { "以所有商人里价格最好的出售（广告：为避免误操作，建议订阅物品回购mod）", (int)DropAtBaseAction.Sell }
+            { L.Get(L.Keys.ConfigDropAtBaseDropUnconfigured), (int)DropAtBaseAction.DropUnconfigured },
+            { L.Get(L.Keys.ConfigDropAtBaseDrop), (int)DropAtBaseAction.Drop },
+            { L.Get(L.Keys.ConfigDropAtBaseSendToStorage), (int)DropAtBaseAction.SendToStorage },
+            { L.Get(L.Keys.ConfigDropAtBaseSell), (int)DropAtBaseAction.Sell }
         };
 
         ModConfigAPI.SafeAddDropdownList(
             ModName,
             nameof(dropAtBaseAction),
-            "在基地丢弃物品时的行为",
+            L.Get(L.Keys.ConfigDropAtBaseAction),
             formatOptions,
             typeof(int),
             (int)ModBehaviour.Config.dropAtBaseAction

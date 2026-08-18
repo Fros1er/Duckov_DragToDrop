@@ -1,0 +1,18 @@
+key,value
+DragToDrop.Discard.Drop,アイテムを捨てる
+DragToDrop.Discard.DropUnconfigured,"アイテムを捨てる
+設定で変更可"
+DragToDrop.Discard.SendToStorage,倉庫に戻す
+DragToDrop.Discard.Sell,売却
+DragToDrop.Config.SizeDeltaX,捨て区域の幅（初期値: 927）
+DragToDrop.Config.SizeDeltaY,捨て区域の高さ（初期値: 896）
+DragToDrop.Config.AnchoredPosX,捨て区域の横方向オフセット（初期値: 0）
+DragToDrop.Config.AnchoredPosY,捨て区域の縦方向オフセット（初期値: 60）
+DragToDrop.Config.FontSize,フォントサイズ（初期値: 24）
+DragToDrop.Config.AlphaOnActive,捨て区域の透明度（初期値: 0.3）
+DragToDrop.Config.EnableShiftLeftClick,Shift+左クリック = ダブルクリックを有効化
+DragToDrop.Config.DropAtBaseAction,基地でアイテムを捨てるときの動作
+DragToDrop.Config.DropAtBase.DropUnconfigured,足元に捨てる
+DragToDrop.Config.DropAtBase.Drop,足元に捨てる（区域の設定ヒントを非表示）
+DragToDrop.Config.DropAtBase.SendToStorage,倉庫に入れる
+DragToDrop.Config.DropAtBase.Sell,最も高い価格の商人に売却（誤操作防止のため買い戻しmodの導入を推奨）
