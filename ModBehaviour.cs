@@ -189,13 +189,18 @@ public class ModBehaviour : Duckov.Modding.ModBehaviour
     [HarmonyPatch(typeof(ItemDisplay), nameof(ItemDisplay.OnPointerClick))]
     public static class Patch_ItemDisplay_OnPointerClick
     {
-        static bool patchedJudge(float delta)
+        static bool patchedJudge(float delta, bool doubleClickInvoked)
         {
-            // delta is eventData.clickTime - this.lastClickTime
-            // Log($"Judge: {delta} {Config.enableShiftLeftClick} {Keyboard.current.shiftKey.wasPressedThisFrame} {Keyboard.current.shiftKey.isPressed}");
-            return delta <= 0.3f || (Config.enableShiftLeftClick &&
-                                     (Keyboard.current.shiftKey.isPressed ||
-                                      Keyboard.current.shiftKey.wasPressedThisFrame));
+            // Log(
+            //     $"Judge: {delta} {Config.enableShiftLeftClick} {Keyboard.current.shiftKey.wasPressedThisFrame} {Keyboard.current.shiftKey.isPressed} {doubleClickInvoked}");
+
+            if (Config.enableShiftLeftClick &&
+                (Keyboard.current.shiftKey.isPressed || Keyboard.current.shiftKey.wasPressedThisFrame))
+            {
+                return delta > 0.3f || !doubleClickInvoked;
+            }
+
+            return delta <= 0.3f && !doubleClickInvoked;
         }
 
         static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
@@ -234,15 +239,34 @@ public class ModBehaviour : Duckov.Modding.ModBehaviour
 
             /*
             codes[19]:
-                IL_0032: sub
-                IL_0033: ldc.r4       0.3
-                IL_0038: bgt.un.s     IL_005c
+                    IL_0032: sub
+                    IL_0033: ldc.r4       0.3
+                    IL_0038: bgt.un.s     IL_005c
+
+                    IL_003a: ldarg.0      // this
+                    IL_003b: ldfld        bool Duckov.UI.ItemDisplay::doubleClickInvoked
+                    IL_0040: brtrue.s     IL_005c
             stack after sub:
                 eventData.clickTime - this.lastClickTime
              */
+            /*
+            Modified code:
+                    IL_0032: sub
+                    IL_0033: ldarg.0 (codes[20])    // ldc.r4       0.3
+                    IL_0038: ldfld bool Duckov.UI.ItemDisplay::doubleClickInvoked   // bgt.un.s     IL_005c
+
+                    IL_003a: call patchedJudge      // ldarg.0      // this
+                    IL_003b: brfalse IL_005c        // ldfld        bool Duckov.UI.ItemDisplay::doubleClickInvoked
+                    IL_0040: nop                    // brtrue.s     IL_005c
+             */
             var callMethod = AccessTools.Method(typeof(Patch_ItemDisplay_OnPointerClick), nameof(patchedJudge));
-            codes[20] = new CodeInstruction(OpCodes.Call, callMethod);
-            codes[21].opcode = OpCodes.Brfalse_S;
+            codes[20] = new CodeInstruction(OpCodes.Ldarg_0);
+
+            codes[21] = codes[23]; // ldfld
+            codes[22] = new CodeInstruction(OpCodes.Call, callMethod);
+            codes[23] = codes[24];
+            codes[23].opcode = OpCodes.Brfalse_S;
+            codes[24] = new CodeInstruction(OpCodes.Nop);
 
             Log("Successfully patched ItemDisplay.OnPointerClick. Now we have shift+left click!");
 
